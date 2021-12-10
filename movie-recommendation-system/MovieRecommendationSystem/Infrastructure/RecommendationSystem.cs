@@ -59,7 +59,7 @@ namespace MovieRecommendationSystem.Infrastructure
                 var itemName = _itemNameFunc == null ? firstItemId.ToString() : _itemNameFunc(firstItemId);
                 Interlocked.Increment(ref currentProgress);
                 //Console.WriteLine($" [{currentProgress}/{totalCount}] Finished work on item \"{itemName}\" in {elapsed.TotalMinutes} minute(s).");
-                Console.WriteLine($"{itemName}");
+                Console.WriteLine($" [{currentProgress}/{totalCount}] {itemName}");
             });
         }
 
