@@ -6,8 +6,12 @@ namespace MovieRecommendationSystem.Models
 {
     public class Rank
     {
-        public double Rating { get; set; }
         public int STT { get; set; }
+
+        public int MovieId { get; set; }
+
         public string Title { get; set; }
+
+        public double Rating { get; set; }
     }
 }

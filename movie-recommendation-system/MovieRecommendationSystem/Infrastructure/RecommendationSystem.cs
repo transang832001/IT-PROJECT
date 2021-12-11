@@ -28,39 +28,40 @@ namespace MovieRecommendationSystem.Infrastructure
         {
             _itemRatings = itemRatings;
             _itemSimilarityMatrix = new Dictionary<(int X, int Y), double>();
-            var distinctItem = itemRatings.Select(_itemIdFunc).Distinct().ToList();            
+            var distinctItem = itemRatings.Select(_itemIdFunc).Distinct().ToList();
+            ArrayList ranks = new ArrayList();
+            Rank rank = new Rank();
             int currentProgress = 0, totalCount = distinctItem.Count();
             Console.WriteLine($"Building model based off of {totalCount} items...");
             Parallel.ForEach(distinctItem, firstItemId =>
             {
-                //var elapsed = TimeUtilities.MeasureDuration(() =>
-                //{
-                //    var firstItemRatings = itemRatings.Where(x => _itemIdFunc(x) == firstItemId);
-                //    var firstItemAverageRating = firstItemRatings.Sum(_ratingFunc) / firstItemRatings.Count();
-
-                //    // for every user who rated First Item, add all other rated items to List paired with First Item
-                //    List<(int UserId, T FirstItem, T SecondItem)> itemPairs = firstItemRatings
-                //        .SelectMany(ratings => itemRatings.Where(x => _userIdFunc(x) == _userIdFunc(ratings) && _itemIdFunc(x) != firstItemId)
-                //        .Select(x => (_userIdFunc(x), itemRatings.First(x => _itemIdFunc(x) == firstItemId), x))).ToList();
-
-                //    // for every Second Item, calculate and store the similarity in the matrix
-                //    foreach (var secondItemId in itemPairs.Select(x => _itemIdFunc(x.SecondItem)).Distinct())
-                //    {
-                //        var secondItemRatings = itemRatings.Where(x => _itemIdFunc(x) == secondItemId);
-                //        var secondItemAverageRating = secondItemRatings.Sum(_ratingFunc) / secondItemRatings.Count();
-
-                //        var secondItemPairs = itemPairs.Where(x => _itemIdFunc(x.SecondItem) == secondItemId);
-                //        var similarity = secondItemPairs.Sum(x => (_ratingFunc(x.FirstItem) - firstItemAverageRating) * (_ratingFunc(x.SecondItem) - secondItemAverageRating)) /
-                //            (Math.Sqrt(secondItemPairs.Sum(x => Math.Pow(_ratingFunc(x.FirstItem), 2))) * Math.Sqrt(secondItemPairs.Sum(x => Math.Pow(_ratingFunc(x.SecondItem), 2))));
-                //        _itemSimilarityMatrix.Add((X: firstItemId, Y: secondItemId), similarity);
-                //    }
-                //});
+                
                 var itemName = _itemNameFunc == null ? firstItemId.ToString() : _itemNameFunc(firstItemId);
                 var firstItemRatings = _itemRatings.Where(x => _itemIdFunc(x) == firstItemId);
                 var firstItemAverageRating = firstItemRatings.Sum(_ratingFunc) / firstItemRatings.Count();
-                Interlocked.Increment(ref currentProgress);                
-                //Console.WriteLine($" [{currentProgress}/{totalCount}] Finished work on item \"{itemName}\" in {elapsed.TotalMinutes} minute(s).");                
-            });            
+                Interlocked.Increment(ref currentProgress);
+
+                rank.STT = currentProgress;
+                rank.Rating = firstItemAverageRating;
+                rank.Title = itemName;
+                ranks.Add(firstItemAverageRating);
+
+            });
+            ranks.Sort();
+            foreach (double item in ranks)
+            {
+                Parallel.ForEach(distinctItem, firstItemId =>
+                {
+                    var itemName = _itemNameFunc == null ? firstItemId.ToString() : _itemNameFunc(firstItemId);
+                    var firstItemRatings = _itemRatings.Where(x => _itemIdFunc(x) == firstItemId);
+                    var firstItemAverageRating = firstItemRatings.Sum(_ratingFunc) / firstItemRatings.Count();
+                    Interlocked.Increment(ref currentProgress);
+                    if (firstItemAverageRating == item)
+                        //Console.WriteLine($" [{currentProgress}/{totalCount}] Finished work on item \"{itemName}\" in {elapsed.TotalMinutes} minute(s).");
+                        Console.WriteLine($" {itemName}. Avr Rating: {Math.Round(firstItemAverageRating, 3)} out of 5.");
+                        //Console.WriteLine($" [{currentProgress}/{totalCount}] {itemName}");
+                });
+            }
 
         }
         public double PredictUserRating(int userId, int itemId)
