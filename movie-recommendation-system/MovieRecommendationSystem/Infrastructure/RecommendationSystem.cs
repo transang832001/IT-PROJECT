@@ -57,9 +57,13 @@ namespace MovieRecommendationSystem.Infrastructure
                 //});
 
                 var itemName = _itemNameFunc == null ? firstItemId.ToString() : _itemNameFunc(firstItemId);
+                var firstItemRatings = _itemRatings.Where(x => _itemIdFunc(x) == firstItemId);
+                var firstItemAverageRating = firstItemRatings.Sum(_ratingFunc) / firstItemRatings.Count();
                 Interlocked.Increment(ref currentProgress);
                 //Console.WriteLine($" [{currentProgress}/{totalCount}] Finished work on item \"{itemName}\" in {elapsed.TotalMinutes} minute(s).");
-                Console.WriteLine($" [{currentProgress}/{totalCount}] {itemName}");
+                Console.WriteLine($" {itemName}. Avr: {firstItemAverageRating}");
+                //Console.WriteLine($" [{currentProgress}/{totalCount}] {itemName}");
+
             });
         }
 
